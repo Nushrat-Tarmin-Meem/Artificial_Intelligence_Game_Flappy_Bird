@@ -24,6 +24,13 @@ bird_images = [pygame.image.load(os.path.join('images/bird1.png')),
 coin_image = pygame.image.load(os.path.join('images/coin.png'))
 arrow_image = pygame.image.load(os.path.join('images/arrow.png'))
 
+# Load sounds
+start_sound =pygame.mixer.Sound('.\\sounds\\start.wav')
+fall_sound = pygame.mixer.Sound('.\\sounds\\game-over-arcade.wav')
+jump_sound =pygame.mixer.Sound('.\\sounds\\jump.wav') 
+tada_sound =pygame.mixer.Sound('.\\sounds\\tada.wav')
+coin_sound = pygame.mixer.Sound('.\\sounds\\coin.wav')
+
 # Colors
 white = (255, 255, 255)
 red = (255, 0, 0)
@@ -136,6 +143,9 @@ def level1():
     bird = Bird()
     all_sprites = pygame.sprite.Group()
     all_sprites.add(bird)
+    fall_played = False
+    tada_played = False
+    start_played = False
 
     coins = pygame.sprite.Group()
     for _ in range(15):  # Increased to 15 coins
@@ -148,18 +158,25 @@ def level1():
 
     running = True
     while running:
+        if(start_played == False):
+            start_sound.play()
+            start_played= True
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     bird.flap()
+                    jump_sound.play()
 
         # Update
         all_sprites.update()
 
         # Check if bird touches the ground
         if bird.rect.bottom >= screen_height:
+            if(fall_played == False):
+                fall_sound.play()
+                fall_played = True
             screen.blit(BG_LOSE, (0, 0))
             font = pygame.font.SysFont(None, 70)
             text = font.render('A* LEVEL FAILED', True, red)
@@ -182,6 +199,7 @@ def level1():
 
             # Check collision with coins
             if pygame.sprite.spritecollideany(bird, coins):
+                coin_sound.play()
                 score += 1
                 nearest_coin.kill()
                 coins.remove(nearest_coin)
@@ -212,6 +230,9 @@ def level1():
 
         # Check if all coins are collected
         if not coins:
+            if(tada_played== False):
+                tada_sound.play()
+                tada_played = True
             screen.blit(BG_WIN, (0, 0))  # Display winning image
             font = pygame.font.SysFont(None, 100)
             text = font.render('A* LEVEL WON', True, green)  # Golden color for victory text

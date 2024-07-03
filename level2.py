@@ -3,7 +3,7 @@ import random
 import os
 import math
 import sys
-from level3 import *
+
 # Initialize pygame
 pygame.init()
 
@@ -23,6 +23,13 @@ bird_images = [pygame.image.load(os.path.join('images/bird1.png')),
 coin_image = pygame.image.load(os.path.join('images/leaf.png'))
 arrow_image = pygame.image.load(os.path.join('images/arrow.png'))
 pipe_image = pygame.image.load(os.path.join('images/pipe.png'))  # Load pipe image
+
+#loading sounds
+fall_sound = pygame.mixer.Sound('.\\sounds\\game-over-arcade.wav')
+jump_sound =pygame.mixer.Sound('.\\sounds\\jump.wav') 
+tada_sound =pygame.mixer.Sound('.\\sounds\\tada.wav')
+start_sound =pygame.mixer.Sound('.\\sounds\\start.wav')
+leaf_sound = pygame.mixer.Sound('.\\sounds\\leaf.wav')
 
 # Colors
 white = (255, 255, 255)
@@ -141,9 +148,15 @@ def calculate_angle(dx, dy):
 
 # Main loop
 def level2():
+    
     bird = Bird()
     all_sprites = pygame.sprite.Group()
     all_sprites.add(bird)
+    fall_played = False
+    tada_played = False
+    start_played = False
+    
+
 
     coins = pygame.sprite.Group()
     for _ in range(15):  # Increased to 15 coins
@@ -160,12 +173,16 @@ def level2():
 
     running = True
     while running:
+        if(start_played == False):
+            start_sound.play()
+            start_played= True
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     bird.flap()
+                    jump_sound.play()
 
         # Update
         all_sprites.update()
@@ -183,6 +200,9 @@ def level2():
 
         # Check if bird touches the ground or pipes
         if bird.rect.bottom >= screen_height or pygame.sprite.spritecollideany(bird, pipes):
+            if(fall_played == False):
+                fall_sound.play()
+                fall_played = True
             screen.blit(BG_LOSE, (0, 0))
             font = pygame.font.SysFont(None, 70)
             text = font.render('Alpha-Beta LEVEL FAILED', True, red)
@@ -210,6 +230,7 @@ def level2():
                     # Check collision with coins
                     for coin in coins_list:
                         if pygame.sprite.collide_rect(bird, coin):
+                            leaf_sound.play()
                             coin.collected = True
                             score += 1
                             # Remove collected coin from groups
@@ -242,6 +263,9 @@ def level2():
 
         # Check if all coins are collected
         if len(coins) == 0:
+            if(tada_played== False):
+                tada_sound.play()
+                tada_played = True
             screen.blit(BG_WIN, (0, 0))  # Display winning image
             font = pygame.font.SysFont(None, 100)
             text = font.render('ALPHA-BETA LEVEL WON', True, green)  # Golden color for victory text
@@ -252,7 +276,7 @@ def level2():
             screen.blit(text1, text_rect1)
             pygame.display.flip()
             pygame.time.wait(5000)
-            level3()
+            import level3
             continue
 
         pygame.display.flip()
